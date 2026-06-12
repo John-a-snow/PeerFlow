@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { ProfileProvider, ProfileContext } from "./context/ProfileContext";
 import { SocketProvider, SocketContext } from "./context/SocketContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import RoomView from "./pages/RoomView";
 
@@ -67,11 +66,6 @@ function MainApp() {
 
   if (activeRoom) {
     return <RoomView />;
-  }
-
-  const hasProfile = localStorage.getItem("peerflow_profile_created");
-  if (!hasProfile) {
-    return <LandingPage />;
   }
 
   return <Dashboard />;
