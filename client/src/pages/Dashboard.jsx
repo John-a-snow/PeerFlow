@@ -177,3 +177,35 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+
+          <div className="space-y-6">
+            <div className="brutal-card p-6 space-y-6 bg-white/50 dark:bg-charcoal/50">
+             <div className="flex items-center justify-between border-b border-black dark:border-zinc-700 pb-4">
+              <div>
+                <h3 className="font-extrabold text-base uppercase tracking-wider">Your Profile</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-mono">Synced on this computer.</p>
+              </div>
+              <div className="w-14 h-14 rounded-2xl border-2 border-black bg-white dark:bg-[#1a1a20] flex items-center justify-center text-4xl shadow-flat shrink-0">
+                {avatar}
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest blockk font-mono">User Handle</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16))}
+                  className="w-full brutal-input bg-white dark:bg-[#1a1a20]"
+                  placeholder="Enter handle"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block font-mono">Select Badge</label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {avatarsList.slice(0, 10).map((av) => (
+                    <button
+                </div>
+              </div>
