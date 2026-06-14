@@ -154,3 +154,62 @@ export function useFileTransfer() {
     socket.on("webrtc:signal", handleWebrtcSignal);
     socket.on("file:chunk", handleFileChunk);
     socket.on("file:cancel", handleFileCancel);
+
+    return () => {
+      socket.off("webrtc:request", handleWebrtcRequest);
+      socket.off("webrtc:accept", handleWebrtcAccept);
+      socket.off("webrtc:decline", handleWebrtcSignal);
+      socket.off("webrtc:signal", handleWebrtcSignal);
+      socket.off("file:chunk", handleFileChunk);
+      socket.off("file:cancel", handleFileCancel);
+    };
+  }, [socket]);
+
+  const initiateWebrtcConnection = (transferId, targetSocketId) => {
+    const file = activeFiles.current[transferId]?.file;
+    if (!file) return;
+
+    if (activeFiles.current[transferId]) {
+        activeFiles.current[transferId].status = "connecting";
+        activeFiles.current[transferId].method = "webrtc";
+    }
+
+    setTransfers((prev) => ({
+        ...prev,
+        [transferId]: {
+            status: "connecting",
+            method: "webrtc"
+        }
+    }));
+
+    const pc = new RTCPeerConnection({
+        iceServers: [
+            { urls: "stun:stun.1.google.com:19302"}
+        ]
+    });
+ 
+    peerConnections.current[transferId] = pc;
+
+    const channel = pc.createDataChannel(`file-channel-${transferId}`);
+    dataChannels.current[transferId] = channel;
+
+    channel.binaryType = "arraybuffer";
+
+    let connectionTimeout = setTimeout(() => {
+      const active = activeFiles.current[transferId];
+      if (!active || active.status !== "transferring") {
+        startSocketFallback(transferId, targetSocketId);
+      }
+    }, 6000);
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("webrtc:signal", {
+          targetSocketId,
+          signalData: { transferId, candidate: event.candidate }
+        });
+      }
+    };
+
+    
+
