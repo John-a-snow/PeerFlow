@@ -206,6 +206,4 @@ export default function Dashboard() {
                 <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block font-mono">Select Badge</label>
                 <div className="grid grid-cols-5 gap-1.5">
                   {avatarsList.slice(0, 10).map((av) => (
-                    <button
-                </div>
-              </div>
+                  
