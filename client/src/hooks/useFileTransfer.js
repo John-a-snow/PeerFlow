@@ -210,6 +210,94 @@ export function useFileTransfer() {
         });
       }
     };
+
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "connected") {
+        clearTimeout(connectionTimeout);
+      } else if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
+        startSocketFallback(transferId, targetSocketId);
+      }
+    };
+
+    channel.onopen = () => {
+      clearTimeout(connectionTimeout);
+      setTransfers((prev) => {
+        ...prev,
+        [transferId]: {
+          ...prev[transferId],
+          status: "transferring"
+        }
+      }));
+      senderWebrtcFileChunks(transferId, file, channel);
+    };
+
+    channel.onclose = () => {
+      if (
+        activeFiles.current[transferId] &&
+        activeFiles.current[transferId].status !== "completed"
+      ) {
+        startSocketFallback(transferId, targetSocketId);
+      }
+    };
+    
+    pc.createOffer()
+      .then((offer) => pc.setLocalDescription(offer))
+      .then(() => {
+        socket.emit("webrtc:signal", {
+          targetSocketId,
+          signalData: { transferId, sdp: pc.localDescription }
+        });
+      })
+      .catch(() => {
+        startsSocketFallback(transferId, targetSocketId);
+      });
+  };
+
+  const setupRecieverPeerConnection = (transferId, senderSocketId, signalData) => {
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" }
+      ]
+    });
+
+    peerConnections.current[transferId] = pc;
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("webrtc:signal", {
+          targetSocketId: senderSocketId,
+          signalData: { transferId, candidate: event.candidate }
+        });
+      }
+    };
+
+    pc.ondatachannel = (event) => {
+      const channel = event.channel;
+      dataChannels.current[transferId] = channel;
+      channel.binaryType = "arraybuffer";
+
+      fileBuffers.current[transferId] = [];
+
+      let receivedBytes = 0;
+      let startTime = Date.now();
+
+      channel.onmessage = (e) => {
+        const buffer = e.data;
+        fileBuffers.current[transferId].push(buffer);
+        receivedBytes += buffer.byteLength;
+
+        const metadata = activeFiles.current[transferId];
+        const totalSize = metadata ? metadata.size : 0;
+        const fileName = metadata ? metadata.name : "file";
+
+        const progress = totalSize > 0 ? Math.round((receivedBytes / totalSize) * 100) : 0;
+
+        const duration = (Date.now() - startTime) / 1000;
+        const speed = duration > 0 ? Math.round(receivedBytes / duration / 1024 / 1024 * 10) / 10 : 0;
+
+
+
     
     
 
