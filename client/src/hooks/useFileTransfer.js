@@ -296,6 +296,109 @@ export function useFileTransfer() {
         const duration = (Date.now() - startTime) / 1000;
         const speed = duration > 0 ? Math.round(receivedBytes / duration / 1024 / 1024 * 10) / 10 : 0;
 
+        setTransfers((prev) => {
+          const current = prev[transferId];
+          if (!current) return prev;
+          return {
+            ...prev, 
+            [transferId]: {
+              ...current,
+              progress,
+              speed,
+              status: progress === 100 ? "completed" : "transfering"
+            }
+          };
+        });
+
+        if (totalSize > 0 && receivedBytes >= totalSize) {
+          assembleAndDownloadFile(transferId, fileName);
+          channel.close();
+          pc.close();
+        }
+      };
+    };
+
+    if (signalData.sdp) {
+      pc.setRemoteDescription(new RTCSessionDescription(signalData.sdp))
+        .then(() => pc.createAnswer())
+        .then((answer) => pc.setLocalDescription(answer))
+        .then(() => {
+          socket.emit("webrtc:signal", {
+            targetSocketId: senderSocketId,
+            signalData: { transferId, sdp: pc.localDescription }
+          });
+        })
+        .catch(() => {});
+    }
+  };
+
+  const sendWebrtcFileChunks = (transferId, file, channel) => {
+    const chunkSize = 16384;
+    let offset = 0;
+    const fileReader = new FileReader();
+    const startTime = DataTransfer.now();
+
+    const readSlice = () => {
+      if (!channel || channel.readyState !== "open") return;
+      const slice = file.slice(offset, offset + chunkSize);
+      fileReader.readAsArrayBuffer(slice);
+    };
+
+    fileReader.onload = (e) => {
+      const buffer = e.target.result;
+      try {
+        channel.send(buffer);
+        try {
+          channel.send(buffer);
+          offset += buffer.byteLength;
+
+          const progress = Math.round((offset / file.size) * 100);
+          const duration = (Date.now() - startTime) / 1000;
+          const speed = duration > 0 ? Math.round(offset / duration / 1024 / 1024 * 10) / 10 : 0;
+
+          setTransfers((prev) => {
+            const current = prev[transferId];
+            if (!current) return prev;
+            return {
+              ...prev,
+              [transferId]: {
+                ...current,
+                progress,
+                speed,
+                status: progress === 100 ? "completed" : "transferring"
+              }
+            };
+          });
+
+          if (offset < file.size) {
+            if (channel.bufferedAmount > 65535) {
+              channel.onbufferedAmountlow = () => {
+                channel.onbufferedAmountlow = null;
+                readSlice();
+              };
+            } else {
+                         readSlice();
+          }
+        } else {
+          cleanupTransfer(transferId, "completed");
+        }
+      } catch (err) {
+        startSocketFallback(transferId, transfers[transferId]?.peerId);
+      }
+    };
+
+    readSlice();
+  };
+
+    const startSocketFallback = (transferId, targetSocketId) => {
+    const active = activeFiles.current[transferId];
+    if (
+      active?.method === "socket" ||
+      active?.status === "completed"
+    ) {
+      return;
+    }
+
 
 
     
