@@ -158,7 +158,7 @@ export function useFileTransfer() {
     return () => {
       socket.off("webrtc:request", handleWebrtcRequest);
       socket.off("webrtc:accept", handleWebrtcAccept);
-      socket.off("webrtc:decline", handleWebrtcSignal);
+      socket.off("webrtc:decline", handleWebrtcDecline);
       socket.off("webrtc:signal", handleWebrtcSignal);
       socket.off("file:chunk", handleFileChunk);
       socket.off("file:cancel", handleFileCancel);
@@ -170,24 +170,26 @@ export function useFileTransfer() {
     if (!file) return;
 
     if (activeFiles.current[transferId]) {
-        activeFiles.current[transferId].status = "connecting";
-        activeFiles.current[transferId].method = "webrtc";
+      activeFiles.current[transferId].status = "connecting";
+      activeFiles.current[transferId].method = "webrtc";
     }
 
     setTransfers((prev) => ({
-        ...prev,
-        [transferId]: {
-            status: "connecting",
-            method: "webrtc"
-        }
+      ...prev,
+      [transferId]: {
+        ...prev[transferId],
+        status: "connecting",
+        method: "webrtc"
+      }
     }));
 
     const pc = new RTCPeerConnection({
-        iceServers: [
-            { urls: "stun:stun.1.google.com:19302"}
-        ]
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" }
+      ]
     });
- 
+
     peerConnections.current[transferId] = pc;
 
     const channel = pc.createDataChannel(`file-channel-${transferId}`);
@@ -221,14 +223,14 @@ export function useFileTransfer() {
 
     channel.onopen = () => {
       clearTimeout(connectionTimeout);
-      setTransfers((prev) => {
+      setTransfers((prev) => ({
         ...prev,
         [transferId]: {
           ...prev[transferId],
           status: "transferring"
         }
       }));
-      senderWebrtcFileChunks(transferId, file, channel);
+      sendWebrtcFileChunks(transferId, file, channel);
     };
 
     channel.onclose = () => {
@@ -239,7 +241,7 @@ export function useFileTransfer() {
         startSocketFallback(transferId, targetSocketId);
       }
     };
-    
+
     pc.createOffer()
       .then((offer) => pc.setLocalDescription(offer))
       .then(() => {
@@ -249,11 +251,11 @@ export function useFileTransfer() {
         });
       })
       .catch(() => {
-        startsSocketFallback(transferId, targetSocketId);
+        startSocketFallback(transferId, targetSocketId);
       });
   };
 
-  const setupRecieverPeerConnection = (transferId, senderSocketId, signalData) => {
+  const setupReceiverPeerConnection = (transferId, senderSocketId, signalData) => {
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -300,12 +302,12 @@ export function useFileTransfer() {
           const current = prev[transferId];
           if (!current) return prev;
           return {
-            ...prev, 
+            ...prev,
             [transferId]: {
               ...current,
               progress,
               speed,
-              status: progress === 100 ? "completed" : "transfering"
+              status: progress === 100 ? "completed" : "transferring"
             }
           };
         });
@@ -336,7 +338,7 @@ export function useFileTransfer() {
     const chunkSize = 16384;
     let offset = 0;
     const fileReader = new FileReader();
-    const startTime = DataTransfer.now();
+    const startTime = Date.now();
 
     const readSlice = () => {
       if (!channel || channel.readyState !== "open") return;
@@ -348,36 +350,34 @@ export function useFileTransfer() {
       const buffer = e.target.result;
       try {
         channel.send(buffer);
-        try {
-          channel.send(buffer);
-          offset += buffer.byteLength;
+        offset += buffer.byteLength;
 
-          const progress = Math.round((offset / file.size) * 100);
-          const duration = (Date.now() - startTime) / 1000;
-          const speed = duration > 0 ? Math.round(offset / duration / 1024 / 1024 * 10) / 10 : 0;
+        const progress = Math.round((offset / file.size) * 100);
+        const duration = (Date.now() - startTime) / 1000;
+        const speed = duration > 0 ? Math.round(offset / duration / 1024 / 1024 * 10) / 10 : 0;
 
-          setTransfers((prev) => {
-            const current = prev[transferId];
-            if (!current) return prev;
-            return {
-              ...prev,
-              [transferId]: {
-                ...current,
-                progress,
-                speed,
-                status: progress === 100 ? "completed" : "transferring"
-              }
+        setTransfers((prev) => {
+          const current = prev[transferId];
+          if (!current) return prev;
+          return {
+            ...prev,
+            [transferId]: {
+              ...current,
+              progress,
+              speed,
+              status: progress === 100 ? "completed" : "transferring"
+            }
+          };
+        });
+
+        if (offset < file.size) {
+          if (channel.bufferedAmount > 65535) {
+            channel.onbufferedamountlow = () => {
+              channel.onbufferedamountlow = null;
+              readSlice();
             };
-          });
-
-          if (offset < file.size) {
-            if (channel.bufferedAmount > 65535) {
-              channel.onbufferedAmountlow = () => {
-                channel.onbufferedAmountlow = null;
-                readSlice();
-              };
-            } else {
-                         readSlice();
+          } else {
+            readSlice();
           }
         } else {
           cleanupTransfer(transferId, "completed");
@@ -390,7 +390,7 @@ export function useFileTransfer() {
     readSlice();
   };
 
-    const startSocketFallback = (transferId, targetSocketId) => {
+  const startSocketFallback = (transferId, targetSocketId) => {
     const active = activeFiles.current[transferId];
     if (
       active?.method === "socket" ||
@@ -399,8 +399,103 @@ export function useFileTransfer() {
       return;
     }
 
+    if (active) {
+      active.status = "transferring";
+      active.method = "socket";
+    }
 
+    if (peerConnections.current[transferId]) {
+      peerConnections.current[transferId].close();
+      delete peerConnections.current[transferId];
+    }
+    if (dataChannels.current[transferId]) {
+      dataChannels.current[transferId].close();
+      delete dataChannels.current[transferId];
+    }
 
-    
-    
+    fileBuffers.current[transferId] = [];
 
+    setTransfers((prev) => ({
+      ...prev,
+      [transferId]: {
+        ...prev[transferId],
+        status: "transferring",
+        method: "socket",
+        progress: 0
+      }
+    }));
+
+    const file = activeFiles.current[transferId]?.file;
+    if (!file) return;
+
+    sendSocketFileChunks(transferId, file, targetSocketId);
+  };
+
+  const sendSocketFileChunks = (transferId, file, targetSocketId) => {
+    const chunkSize = 65536;
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    let chunkIndex = 0;
+
+    const sendNextChunk = () => {
+      const start = chunkIndex * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const slice = file.slice(start, end);
+      const fileReader = new FileReader();
+
+      fileReader.onload = (e) => {
+        const chunkData = e.target.result;
+        socket.emit("file:chunk", {
+          targetSocketId,
+          chunk: chunkData,
+          fileName: file.name,
+          chunkIndex,
+          totalChunks,
+          transferId
+        });
+
+        chunkIndex++;
+        const progress = Math.round((chunkIndex / totalChunks) * 100);
+
+        setTransfers((prev) => {
+          const current = prev[transferId];
+          if (!current) return prev;
+          return {
+            ...prev,
+            [transferId]: {
+              ...current,
+              progress,
+              status: progress === 100 ? "completed" : "transferring"
+            }
+          };
+        });
+
+        if (chunkIndex < totalChunks) {
+          socketTransferTimers.current[transferId] = setTimeout(sendNextChunk, 10);
+        } else {
+          cleanupTransfer(transferId, "completed");
+        }
+      };
+
+      fileReader.readAsArrayBuffer(slice);
+    };
+
+    sendNextChunk();
+  };
+
+  const assembleAndDownloadFile = (transferId, fileName) => {
+    const buffers = fileBuffers.current[transferId];
+    if (!buffers || buffers.length === 0) return;
+
+    const blob = new Blob(buffers);
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+    cleanupTransfer(transferId, "completed");
+  };
