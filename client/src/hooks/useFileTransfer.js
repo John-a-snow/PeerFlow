@@ -499,3 +499,137 @@ export function useFileTransfer() {
     URL.revokeObjectURL(url);
     cleanupTransfer(transferId, "completed");
   };
+
+  const cleanupTransfer = (transferId, finalStatus) => {
+    if (socketTransferTimers.current[transferId]) {
+      clearTimeout(socketTransferTimers.current[transferId]);
+      delete socketTransferTimers.current[transferId];
+    }
+    if (peerConnections.current[transferId]) {
+      peerConnections.current[transferId].close();
+      delete peerConnections.current[transferId];
+    }
+    if (dataChannels.current[transferId]) {
+      dataChannels.current[transferId].close();
+      delete dataChannels.current[transferId];
+    }
+
+    delete fileBuffers.current[transferId];
+    if (activeFiles.current[transferId]) {
+      activeFiles.current[transferId].status = finalStatus;
+    }
+
+    setTransfers((prev) => {
+      const current = prev[transferId];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [transferId]: {
+          ...current,
+          status: finalStatus,
+          progress: finalStatus === "completed" ? 100 : current.progress
+        }
+      };
+    });
+  };
+
+  const sendFile = (file, targetSocketId) => {
+    if (!socket || !activeRoom) return;
+
+    const transferId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const transferInfo = {
+      id: transferId,
+      name: file.name,
+      size: file.size,
+      progress: 0,
+      speed: 0,
+      status: "pending",
+      type: "upload",
+      peerId: targetSocketId,
+      method: "pending"
+    };
+
+    activeFiles.current[transferId] = { file, peerId: targetSocketId, status: "pending", id: transferId };
+
+    setTransfers((prev) => ({
+      ...prev,
+      [transferId]: transferInfo
+    }));
+
+    socket.emit("webrtc:request", {
+      roomCode: activeRoom.code,
+      targetSocketId,
+      fileMetadata: {
+        transferId,
+        name: file.name,
+        size: file.size,
+        type: file.type
+      }
+    });
+  };
+
+  const acceptTransferRequest = (senderSocketId, transferId) => {
+    if (!socket || !activeRoom) return;
+
+    setIncomingRequests((prev) => prev.filter((r) => r.transferId !== transferId));
+
+    setTransfers((prev) => ({
+      ...prev,
+      [transferId]: {
+        ...prev[transferId],
+        status: "connecting",
+        method: "webrtc"
+      }
+    }));
+
+    socket.emit("webrtc:accept", {
+      roomCode: activeRoom.code,
+      targetSocketId: senderSocketId
+    });
+  };
+
+  const declineTransferRequest = (senderSocketId, transferId) => {
+    if (!socket || !activeRoom) return;
+
+    setIncomingRequests((prev) => prev.filter((r) => r.transferId !== transferId));
+
+    setTransfers((prev) => ({
+      ...prev,
+      [transferId]: {
+        ...prev[transferId],
+        status: "declined"
+      }
+    }));
+
+    socket.emit("webrtc:decline", {
+      roomCode: activeRoom.code,
+      targetSocketId: senderSocketId
+    });
+  };
+
+  const cancelTransfer = (transferId) => {
+    const transfer = transfers[transferId];
+    if (!transfer) return;
+
+    const peerId = transfer.peerId;
+
+    if (socket) {
+      socket.emit("file:cancel", {
+        targetSocketId: peerId,
+        transferId
+      });
+    }
+
+    cleanupTransfer(transferId, "cancelled");
+  };
+
+  return {
+    transfers,
+    incomingRequests,
+    sendFile,
+    acceptTransferRequest,
+    declineTransferRequest,
+    cancelTransfer
+  };
+}
