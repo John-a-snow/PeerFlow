@@ -147,4 +147,55 @@ export default function FileTransferPanel({ FileTransferPanel }) {
                 .reverse()
                 .map((t) => {
                     const isUpload = t.type === "upload";
-                    
+                    const isPending = t.status === "pending" || t.status === "connecting";
+                    const isCompleted = t.status === "completed";
+                    const isFailed = t.status === "failed" || t.status === "cancelled" || t.status === "declined";
+
+                    return (
+                      <div key={t.id} className="brutal-card p-4 space-y-3 bg-white/40 dark:bg-charcoal/40">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <span className={`inline-block px-2.5 py-0.5 border border-black rounded-lg text-[9px] font-mono uppercase font-bold mb-2 ${
+                              isUpload ? "bg-crimson/10 text-crimson" : "bg-cyberGreen/10 text-cyberGreen"
+                            }`}>
+                              {isUpload ? "Upload" : "Download"}
+                           </span>
+                           <h5 className="font-extrabold text-sm text-zinc-950 dark:text-zinc-50 break-all">{t.name}</h5>
+                           <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono mt-1 font-bold">
+                             Size: {formatSize(t.size)} | Peer: {getTargetName(t.peerId)}
+                            </p>
+                          </div>
+
+                          {!isCompleted && !isFailed && (
+                            <button
+                              onClick={() => cancelTransfer(t.id)}
+                              className="p-1.5 bg-white dark:bg-[#1a1a20] border-2 border-black hover:bg-zinc-100:bg-zinc-800 rounded-lg text-zinc-650 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-xs font-mono font-bold">
+                            <span className="text-zinc-550 dark:text-zinc-400 uppercase">
+                              {t.status === "pending" && "Ready! Waiting for approval..."}
+                              {t.status === "connecting" && "Hooking signal..."}
+                              {t.status === "transferring" && `${t.progress}%`}
+                              {isCompleted && "Completed"}
+                              {t.status === "declined" && "Declined"}
+                              {t.status === "cancelled" && "Cancelled"}
+                              {t.status === "failed" && "Failed"}
+                            </span> 
+                            {t.status === "transferring" && t.speed > 0 && (
+                              <span className="text-zinc-700 dark:text-zinc-300">{t.speed} MB/s</span>
+                            )}
+                            {t.status === "transferring" && (
+                              <span className="flex items-center gap-1 text-[9px] text-zinc-500 uppercase tracking-widest font-bold">
+                                {t.method === "webrtc" ? (
+                                  <>
+                                     <Cable className="w-3 h-3 text-crimson animate-pulse" /> P2P
+                                  </>
+                                ) : (
+                                  <>
+                                    <Server className
