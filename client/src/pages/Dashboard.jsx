@@ -243,3 +243,102 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      <footer className="w-full max-w-6xl mx-auto py-8 border-t-2 border-black dark:border-zinc-700 text-center text-xs text-zinc-500 dark:text-zinc-455 relative z-10 mt-8 font-mono">
+        <p>&copy; {new Date().getFullYear()} PeerFlow. Values persistent inside client LocalStorage.</p>
+      </footer>
+
+      {showCreateDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md brutal-card p-6 space-y-6 bg-white dark:bg-[#16161a] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-lg uppercase tracking-wider">Launch Room</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-mono">Enter a room name to initialize.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCreateDialog(false);
+                  clearError();
+                }}
+                className="p-1.5 hover:bg-white/5 border-2 border-black bg-white dark:bg-[#1a1a20] shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] rounded-lg text-zinc-650 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRoomSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block font-mono">Workspace Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newRoomName}
+                  onChange={(e) => setNewRoomName(e.target.value)}
+                  className="w-full brutal-input"
+                  placeholder="e.g. Java Project Team"
+                  maxLength={32}
+                />
+              </div>
+
+              {error && <div className="p-3 border-2 border-black bg-crimson/10 text-crimson text-xs rounded-xl font-mono">{error}</div>}
+
+              <button
+                type="submit"
+                className="w-full py-3 brutal-btn text-sm"
+              >
+                Launch Room
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showJoinDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md brutal-card p-6 space-y-6 bg-white dark:bg-[#16161a] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-lg uppercase tracking-wider">Connect Room</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-mono">Enter code to link up.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowJoinDialog(false);
+                  clearError();
+                }}
+                className="p-1.5 hover:bg-white/5 border-2 border-black bg-white dark:bg-[#1a1a20] shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] rounded-lg text-zinc-650 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleJoinRoomSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block font-mono">Room Code</label>
+                <input
+                  type="text"
+                  required
+                  value={joinRoomCode}
+                  onChange={(e) => setJoinRoomCode(e.target.value.toUpperCase())}
+                  className="w-full brutal-input text-center tracking-widest text-xl uppercase font-bold dark:bg-[#1a1a20] dark:text-white"
+                  placeholder="ABC123"
+                  maxLength={6}
+                />
+              </div>
+
+              {error && <div className="p-3 border-2 border-black bg-crimson/10 text-crimson text-xs rounded-xl font-mono">{error}</div>}
+
+              <button
+                type="submit"
+                className="w-full py-3 brutal-btn text-sm"
+              >
+                Link Node
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
