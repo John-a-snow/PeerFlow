@@ -112,15 +112,15 @@ export default function ResourceHub() {
                   }`}>
                     {isNote ? <FileText className="w-5 h-5" /> : <Link className="w-5 h-5" />}
                   </div>
-                  
+
                   <div className="flex-grow min-w-0">
-                    <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest font-mono">
+                    <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest font-mono">{res.category}</span>
                     <h4 className="font-extrabold text-sm truncate mt-0.5 text-zinc-950 dark:text-zinc-50">{res.name}</h4>
                     <p className="text-[11px] text-zinc-550 dark:text-zinc-400 mt-1 font-bold">Shared by {res.sender}</p>
 
                     {!isNote && (
                       <a
-                        href={res.fileMetadata.url.startsWith("hhtp") ? res.fileMetadata.url : "https://${res.fillMetadata.url}`}
+                        href={res.fileMetadata.url.startsWith("http") ? res.fileMetadata.url : `https://${res.fileMetadata.url}`}
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -145,13 +145,13 @@ export default function ResourceHub() {
               <button
                 onClick={() => setShowAddModal(false)}
                 className="p-1.5 hover:bg-white/5 border-2 border-black bg-white dark:bg-[#1a1a20] shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] rounded-lg text-zinc-650 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-              <form onSubmit={handleShare} className="space-y-4">
-                <div className="flex bg-[#eae0d0] dark:bg-[#1a1a20] p-1 border-2 border-black rounded-xl">
+            <form onSubmit={handleShare} className="space-y-4">
+              <div className="flex bg-[#eae0d0] dark:bg-[#1a1a20] p-1 border-2 border-black rounded-xl">
                 <button
                   type="button"
                   onClick={() => setResType("note")}
@@ -199,3 +199,69 @@ export default function ResourceHub() {
                   ))}
                 </select>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block font-mono font-bold">
+                  {resType === "note" ? "Note Content" : "URL link"}
+                </label>
+                {resType === "note" ? (
+                  <textarea
+                    required
+                    value={resContent}
+                    onChange={(e) => setResContent(e.target.value)}
+                    rows={4}
+                    className="w-full brutal-input resize-none bg-white dark:bg-[#1a1a20]"
+                    placeholder="Write detailed notes..."
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    value={resContent}
+                    onChange={(e) => setResContent(e.target.value)}
+                    className="w-full brutal-input bg-white dark:bg-[#1a1a20]"
+                    placeholder="https://github.com/..."
+                  />
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 brutal-btn text-sm"
+              >
+                Register Resource
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {selectedNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-lg brutal-card p-6 space-y-6 bg-white dark:bg-[#16161a] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-black dark:border-zinc-700 pb-4">
+              <div>
+                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest font-mono">{selectedNote.category}</span>
+                <h3 className="font-extrabold text-lg mt-0.5 text-zinc-950 dark:text-zinc-50">{selectedNote.name}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedNote(null)}
+                className="p-1.5 hover:bg-white/5 border-2 border-black bg-white dark:bg-[#1a1a20] shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] rounded-lg text-zinc-655 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto p-4 bg-[#fcf8f2] dark:bg-[#1a1a20]/80 border-2 border-black dark:border-zinc-700 rounded-xl text-zinc-800 dark:text-zinc-200 font-sans text-sm whitespace-pre-wrap leading-relaxed shadow-flatHover">
+              {selectedNote.content}
+            </div>
+
+            <div className="text-right text-xs text-zinc-550 dark:text-zinc-400 font-mono font-bold">
+              Shared by {selectedNote.sender} on {new Date(selectedNote.timestamp).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
