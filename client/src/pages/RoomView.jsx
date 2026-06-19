@@ -6,7 +6,7 @@ import Chat from "../components/Chat";
 import FileTransferPanel from "../components/FileTransferPanel";
 import ResourceHub from "../components/ResourceHub";
 import QRJoin from "../components/QRJoin";
-import { LogOut, Copy, Check, Users, MessageSquare, Share2, FolderHeart, QrCode, Sun, Moon } from "lucide-react";
+import { LogOut, Copy, Check, Users, MessageSquare, Share2, FolderHeart, QrCode, Sun, Moon, X } from "lucide-react";
 
 export default function RoomView() {
   const { activeRoom, leaveRoom } = useContext(SocketContext);
@@ -21,6 +21,14 @@ export default function RoomView() {
     navigator.clipboard.writeText(activeRoom?.code || "");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const formatSize = (bytes) => {
+    if (!bytes) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -110,13 +118,18 @@ export default function RoomView() {
           </button>
           <button
             onClick={() => setActiveTab("files")}
-            className={`flex items-center gap-2 px-5 py-2.5 border-2 border-black rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 border-2 border-black rounded-xl text-xs font-bold uppercase tracking-wider transition-all relative ${
               activeTab === "files"
                 ? "bg-crimson text-white shadow-flatHover translate-x-[1px] translate-y-[1px]"
                 : "bg-white dark:bg-[#1a1a20] text-zinc-950 dark:text-white shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             <Share2 className="w-4 h-4" /> Share Files
+            {fileTransferState.incomingRequests.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-crimson text-white text-[10px] w-5 h-5 rounded-full border-2 border-black flex items-center justify-center font-extrabold font-mono animate-bounce shadow-flat">
+                {fileTransferState.incomingRequests.length}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab("hub")}
@@ -135,6 +148,55 @@ export default function RoomView() {
           {activeTab === "files" && <FileTransferPanel fileTransferState={fileTransferState} />}
           {activeTab === "hub" && <ResourceHub />}
         </div>
+
+        {/* Floating Toast Notification for Incoming Transfers */}
+        {fileTransferState.incomingRequests.length > 0 && activeTab !== "files" && (
+          <div className="absolute bottom-6 right-6 z-50 w-80 space-y-3 animate-in slide-in-from-bottom-5 duration-300">
+            {fileTransferState.incomingRequests.map((req) => (
+              <div 
+                key={req.transferId} 
+                className="brutal-card border-crimson p-4 bg-white dark:bg-charcoal shadow-flatHover flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-grow">
+                    <span className="inline-block px-2 py-0.5 border border-black rounded bg-crimson/10 text-crimson text-[9px] font-mono uppercase font-bold mb-1.5 animate-pulse">
+                      Incoming Payload
+                    </span>
+                    <h5 className="font-extrabold text-sm text-zinc-950 dark:text-zinc-550 truncate">
+                      {req.name}
+                    </h5>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono mt-1 font-bold">
+                      Sender: {activeRoom?.users.find((u) => u.socketId === req.senderSocketId)?.username || "Someone"} | {formatSize(req.size)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => fileTransferState.declineTransferRequest(req.senderSocketId, req.transferId)}
+                    className="p-1 text-zinc-400 hover:text-black dark:hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={() => {
+                      fileTransferState.acceptTransferRequest(req.senderSocketId, req.transferId);
+                      setActiveTab("files"); 
+                    }}
+                    className="flex-grow py-2 bg-cyberGreen border-2 border-black shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none rounded-xl text-xs font-bold text-zinc-950 transition-all uppercase tracking-wider"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => fileTransferState.declineTransferRequest(req.senderSocketId, req.transferId)}
+                    className="flex-grow py-2 bg-white dark:bg-[#1a1a20] border-2 border-black shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none rounded-xl text-xs font-bold text-zinc-650 dark:text-zinc-350 transition-all uppercase tracking-wider"
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

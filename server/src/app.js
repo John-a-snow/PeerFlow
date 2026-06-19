@@ -12,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("api/health", (req, res) => {
+app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
@@ -22,7 +22,7 @@ app.get("/api/rooms", (req, res) => {
         name: r.name,
         usersCount: r.users.length
     }));
-    res.json(roomList);
+    res.json(roomsList);
 });
 
 const clientBuildPath = path.join(__dirname, "../../client/dist");

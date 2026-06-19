@@ -11,6 +11,7 @@ export function useFileTransfer() {
   const fileBuffers = useRef({});
   const socketTransferTimers = useRef({});
   const activeFiles = useRef({});
+  const receiverConnectionTimers = useRef({});
 
   useEffect(() => {
     if (!socket) return;
@@ -265,6 +266,24 @@ export function useFileTransfer() {
 
     peerConnections.current[transferId] = pc;
 
+    receiverConnectionTimers.current[transferId] = setTimeout(() => {
+      setTransfers((prev) => {
+        const current = prev[transferId];
+        if (current && current.status === "connecting") {
+          return {
+            ...prev,
+            [transferId]: {
+              ...current,
+              status: "transferring",
+              method: "socket",
+              progress: 0
+            }
+          };
+        }
+        return prev;
+      });
+    }, 7000);
+
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit("webrtc:signal", {
@@ -275,6 +294,10 @@ export function useFileTransfer() {
     };
 
     pc.ondatachannel = (event) => {
+      if (receiverConnectionTimers.current[transferId]) {
+        clearTimeout(receiverConnectionTimers.current[transferId]);
+        delete receiverConnectionTimers.current[transferId];
+      }
       const channel = event.channel;
       dataChannels.current[transferId] = channel;
       channel.binaryType = "arraybuffer";
@@ -505,6 +528,10 @@ export function useFileTransfer() {
       clearTimeout(socketTransferTimers.current[transferId]);
       delete socketTransferTimers.current[transferId];
     }
+    if (receiverConnectionTimers.current[transferId]) {
+      clearTimeout(receiverConnectionTimers.current[transferId]);
+      delete receiverConnectionTimers.current[transferId];
+    }
     if (peerConnections.current[transferId]) {
       peerConnections.current[transferId].close();
       delete peerConnections.current[transferId];
@@ -633,4 +660,3 @@ export function useFileTransfer() {
     cancelTransfer
   };
 }
-
