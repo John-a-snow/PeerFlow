@@ -493,7 +493,7 @@ export function useFileTransfer() {
         });
 
         if (chunkIndex < totalChunks) {
-          socketTransferTimers.current[transferId] = setTimeout(sendNextChunk, 10);
+          socketTransferTimers.current[transferId] = setTimeout(sendNextChunk, 30);
         } else {
           cleanupTransfer(transferId, "completed");
         }
