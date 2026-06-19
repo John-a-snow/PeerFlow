@@ -17,7 +17,7 @@ app.get("api/health", (req, res) => {
 });
 
 app.get("/api/rooms", (req, res) => {
-    const roomList = Array.from(roomMananger.rooms.values()).map((r) => ({
+    const roomsList = Array.from(roomManager.rooms.values()).map((r) => ({
         code: r.code,
         name: r.name,
         usersCount: r.users.length
