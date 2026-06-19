@@ -149,7 +149,6 @@ export default function RoomView() {
           {activeTab === "hub" && <ResourceHub />}
         </div>
 
-        {/* Floating Toast Notification for Incoming Transfers */}
         {fileTransferState.incomingRequests.length > 0 && activeTab !== "files" && (
           <div className="absolute bottom-6 right-6 z-50 w-80 space-y-3 animate-in slide-in-from-bottom-5 duration-300">
             {fileTransferState.incomingRequests.map((req) => (
@@ -180,7 +179,7 @@ export default function RoomView() {
                   <button
                     onClick={() => {
                       fileTransferState.acceptTransferRequest(req.senderSocketId, req.transferId);
-                      setActiveTab("files"); 
+                      setActiveTab("files");
                     }}
                     className="flex-grow py-2 bg-cyberGreen border-2 border-black shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none rounded-xl text-xs font-bold text-zinc-950 transition-all uppercase tracking-wider"
                   >
