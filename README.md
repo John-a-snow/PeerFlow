@@ -30,6 +30,24 @@ Go test It! and share the necessary files.
 - **Direct File Transfer:** Sends files of any size directly from your browser to user's browser privately without needing to upload them to the cloud or create an account.
 - **Room Collaboration:** Creates instant spaces where you can chat with online peers in real-time and pin notes or links that everyone in the room can see.
 
+## Project Images
+
+**Home Page**
+
+<img width="1532" height="732" alt="Screenshot 2026-06-20 122717" src="https://github.com/user-attachments/assets/6cfebd6f-6765-40b8-9c80-f2bacc1c4dc8" />
+
+**How To Use**
+
+<img width="877" height="701" alt="Screenshot 2026-06-20 123732" src="https://github.com/user-attachments/assets/1db361bb-463e-4849-bd67-3ae965b83c9a" />
+
+**Active Room**
+
+<img width="1536" height="732" alt="Screenshot 2026-06-20 123851" src="https://github.com/user-attachments/assets/7a597905-c1ed-440f-920c-b48aba840a49" />
+
+**File Sharing**
+
+<img width="1535" height="736" alt="image" src="https://github.com/user-attachments/assets/daf1533e-9b1f-4dbe-bcb0-b7041afeea66" />
+
 ## How to Run Locally
 
 ### 1. Start the Backend Server
@@ -50,19 +68,6 @@ npm install
 npm run dev
 ```
 Just Open http://localhost:5173 in your browser to access the website.
-
-## Project Images
-
-**Home Page**
-
-
-**How To Use**
-
-
-**Active Room**
-
-
-**File Sharing**
 
 
 ## PeerFlow Structure
@@ -98,8 +103,9 @@ server/
 
 # License
 
-
 MIT
+
+# Author 
 
 Built By **Arush Verma**
 - Email: [arushv115@gmail.com](mailto:arushv115@gmail.com)
