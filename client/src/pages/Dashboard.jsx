@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import { SocketContext } from "../context/SocketContext";
 import { ProfileContext } from "../context/ProfileContext";
 import { ThemeContext } from "../context/ThemeContext";
-import { Users, Plus, Key, Radio, Compass, RefreshCw, X, Shield, Sun, Moon } from "lucide-react";
+import { Users, Plus, Key, Radio, Compass, RefreshCw, X, Shield, Sun, Moon, HelpCircle } from "lucide-react";
+import HowToUseModal from "../components/HowToUseModal";
 
 export default function Dashboard() {
   const { createRoom, joinRoom, error, clearError, isConnected } = useContext(SocketContext);
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [newRoomName, setNewRoomName] = useState("");
   const [joinRoomCode, setJoinRoomCode] = useState("");
   const [profileMsg, setProfileMsg] = useState("");
+  const [showHelp, setShowHelp] = useState(false);
 
   const fetchRooms = async () => {
     setLoading(true);
@@ -87,6 +89,13 @@ export default function Dashboard() {
             ) : (
               <Sun className="w-4 h-4 text-white" />
             )}
+          </button>
+          <button
+            onClick={() => setShowHelp(true)}
+            className="p-2.5 bg-white dark:bg-[#1a1a20] border-2 border-black shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none rounded-2xl transition-all text-zinc-650 dark:text-zinc-350"
+            title="How to Use Guide"
+          >
+            <HelpCircle className="w-4 h-4 text-black dark:text-white" />
           </button>
         </div>
       </header>
@@ -339,6 +348,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      <HowToUseModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }

@@ -32,14 +32,14 @@ function LoadingScreen() {
             </span>
           ))}
         </h1>
-        <p className="text-zinc-550 text-xs font-mono">{quote}</p>
+        <p className="text-zinc-500 text-xs font-mono">{quote}</p>
       </div>
     </div>
   );
 }
 
 function MainApp() {
-  const { activeRoom, joinRoom } = useContext(SocketContext);
+  const { activeRoom, joinRoom, isConnected } = useContext(SocketContext);
   const { username } = useContext(ProfileContext);
   const [showLoader, setShowLoader] = useState(true);
 
@@ -53,12 +53,12 @@ function MainApp() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const joinCode = params.get("join");
-    if (joinCode && username) {
+    if (joinCode && username && isConnected) {
       joinRoom(joinCode.toUpperCase());
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, document.title, cleanUrl);
     }
-  }, [username]);
+  }, [username, isConnected]);
 
   if (showLoader) {
     return <LoadingScreen />;

@@ -6,7 +6,8 @@ import Chat from "../components/Chat";
 import FileTransferPanel from "../components/FileTransferPanel";
 import ResourceHub from "../components/ResourceHub";
 import QRJoin from "../components/QRJoin";
-import { LogOut, Copy, Check, Users, MessageSquare, Share2, FolderHeart, QrCode, Sun, Moon, X } from "lucide-react";
+import { LogOut, Copy, Check, Users, MessageSquare, Share2, FolderHeart, QrCode, Sun, Moon, X, HelpCircle } from "lucide-react";
+import HowToUseModal from "../components/HowToUseModal";
 
 export default function RoomView() {
   const { activeRoom, leaveRoom } = useContext(SocketContext);
@@ -16,6 +17,7 @@ export default function RoomView() {
   const [activeTab, setActiveTab] = useState("chat");
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(activeRoom?.code || "");
@@ -67,6 +69,13 @@ export default function RoomView() {
               ) : (
                 <Sun className="w-4 h-4 text-white" />
               )}
+            </button>
+            <button
+              onClick={() => setShowHelp(true)}
+              className="p-2.5 bg-white dark:bg-[#1a1a20] border-2 border-black shadow-flat hover:shadow-flatHover hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none rounded-xl transition-all text-zinc-650 dark:text-zinc-350"
+              title="How to Use Guide"
+            >
+              <HelpCircle className="w-4 h-4 text-black dark:text-white" />
             </button>
           </div>
 
@@ -197,6 +206,7 @@ export default function RoomView() {
           </div>
         )}
       </main>
+      <HowToUseModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }
