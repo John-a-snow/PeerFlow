@@ -12,9 +12,9 @@ export function SocketProvider({ children }) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketUrl = import.meta.env.DEV
+    const socketUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV
       ? `http://${window.location.hostname}:5000`
-      : window.location.origin;
+      : window.location.origin);
 
     const socketInstance = io(socketUrl, {
       transports: ["websocket"],

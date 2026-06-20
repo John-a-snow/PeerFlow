@@ -20,9 +20,10 @@ export default function Dashboard() {
   const fetchRooms = async () => {
     setLoading(true);
     try {
-      const serverUrl = import.meta.env.DEV
-        ? `http://${window.location.hostname}:5000/api/rooms`
-        : "/api/rooms";
+      const baseUrl = import.meta.env.VITE_BACKEND_URL || (import.meta.env.DEV
+        ? `http://${window.location.hostname}:5000`
+        : "");
+      const serverUrl = `${baseUrl}/api/rooms`;
       const response = await fetch(serverUrl);
       const data = await response.json();
       setActiveRooms(data || []);
@@ -210,9 +211,8 @@ export default function Dashboard() {
                         key={av}
                         type="button"
                         onClick={() => setAvatar(av)}
-                        className={`text-xl p-2 rounded-xl border-2 transition-all ${
-                          avatar === av ? "bg-crimson/20 border-black shadow-flatHover" : "bg-white dark:bg-[#1a1a20] border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white"
-                        }`}
+                        className={`text-xl p-2 rounded-xl border-2 transition-all ${avatar === av ? "bg-crimson/20 border-black shadow-flatHover" : "bg-white dark:bg-[#1a1a20] border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white"
+                          }`}
                       >
                         {av}
                       </button>
