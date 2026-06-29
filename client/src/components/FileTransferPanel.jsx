@@ -98,7 +98,7 @@ export default function FileTransferPanel({ fileTransferState }) {
             <option value="">-- Choose active peer --</option>
             {activePeers.map((peer) => (
               <option key={peer.socketId} value={peer.socketId}>
-                {peer.avatar} {peer.username}
+                {peer.username}
               </option>
             ))}
           </select>

@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect } from "react";
 
 export const ProfileContext = createContext();
 
-const AVATARS = ["🚀", "👾", "🐱", "🦊", "🐨", "🤖", "🦁", "🐼", "🦄", "🐙"];
+const AVATARS = ["boxing", "coffee", "dumbbell", "fish", "grape", "kiwi", "milk", "running", "scale", "yogurt"];
 
 const ADJECTIVES = ["Quantum", "Hyper", "Cyber", "Vortex", "Nebula", "Cosmic", "Solar", "Pixel", "Vector", "Matrix"];
 const NOUNS = ["Pioneer", "Hacker", "Drifter", "Runner", "Voyager", "Ranger", "Seeker", "Coder", "Shifter", "Spark"];

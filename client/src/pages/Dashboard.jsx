@@ -4,6 +4,7 @@ import { ProfileContext } from "../context/ProfileContext";
 import { ThemeContext } from "../context/ThemeContext";
 import { Users, Plus, Key, Radio, Compass, RefreshCw, X, Shield, Sun, Moon, HelpCircle } from "lucide-react";
 import HowToUseModal from "../components/HowToUseModal";
+import AvatarRenderer from "../components/AvatarRenderer";
 
 export default function Dashboard() {
   const { createRoom, joinRoom, error, clearError, isConnected } = useContext(SocketContext);
@@ -195,9 +196,7 @@ export default function Dashboard() {
                   <h3 className="font-extrabold text-base uppercase tracking-wider">Your Profile</h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-mono">Synced on this computer.</p>
                 </div>
-                <div className="w-14 h-14 rounded-2xl border-2 border-black bg-white dark:bg-[#1a1a20] flex items-center justify-center text-4xl shadow-flat shrink-0">
-                  {avatar}
-                </div>
+                <AvatarRenderer name={avatar} size="lg" />
               </div>
 
               <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -215,15 +214,14 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block font-mono">Select Badge</label>
                   <div className="grid grid-cols-5 gap-1.5">
-                    {avatarsList.slice(0, 10).map((av) => (
+                    {avatarsList.map((av) => (
                       <button
                         key={av}
                         type="button"
                         onClick={() => setAvatar(av)}
-                        className={`text-xl p-2 rounded-xl border-2 transition-all ${avatar === av ? "bg-crimson/20 border-black shadow-flatHover" : "bg-white dark:bg-[#1a1a20] border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white"
-                          }`}
+                        className="transition-all rounded-2xl flex items-center justify-center p-0 border-none bg-transparent cursor-pointer"
                       >
-                        {av}
+                        <AvatarRenderer name={av} size="md" selected={avatar === av} />
                       </button>
                     ))}
                   </div>
@@ -349,6 +347,9 @@ export default function Dashboard() {
         </div>
       )}
       <HowToUseModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      <div className="fixed bottom-6 left-6 z-20 font-mono text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-500 select-none pointer-events-none">
+        MADE BY ARUSH VERMA
+      </div>
     </div>
   );
 }

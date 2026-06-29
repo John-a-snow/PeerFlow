@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, ChevronLeft, ChevronRight, User, Key, MessageSquare, Share2, HelpCircle, AlertCircle } from "lucide-react";
+import AvatarRenderer from "./AvatarRenderer";
 
 export default function HowToUseModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -15,11 +16,11 @@ export default function HowToUseModal({ isOpen, onClose }) {
       content: (
         <div className="space-y-4">
           <p className="text-sm font-medium leading-relaxed">
-            Choose an emoji and type in a name. This is how other people in the room will see you.
+            Choose an avatar and type in a name. This is how other people in the room will see you.
           </p>
           <div className="p-4 border-2 border-black rounded-2xl bg-white dark:bg-[#1a1a20] space-y-3 shadow-flatHover">
             <div className="flex items-center gap-3">
-              <span className="text-3xl p-1 bg-cream border-2 border-black rounded-xl">🦊</span>
+              <AvatarRenderer name="coffee" size="md" />
               <div>
                 <p className="text-xs text-zinc-400 font-mono">YOUR NICKNAME</p>
                 <p className="text-sm font-extrabold font-mono">PixelCoder</p>
@@ -30,7 +31,7 @@ export default function HowToUseModal({ isOpen, onClose }) {
             </div>
           </div>
           <ul className="text-xs space-y-2 font-mono text-zinc-650 dark:text-zinc-400 list-disc pl-4">
-            <li>Click any emoji to select your avatar badge.</li>
+            <li>Click any avatar badge to select it.</li>
             <li>Type in a nickname (letters and numbers only, up to 16 characters).</li>
             <li>Your details are saved on this browser for the next time you visit.</li>
           </ul>

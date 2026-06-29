@@ -8,6 +8,7 @@ import ResourceHub from "../components/ResourceHub";
 import QRJoin from "../components/QRJoin";
 import { LogOut, Copy, Check, Users, MessageSquare, Share2, FolderHeart, QrCode, Sun, Moon, X, HelpCircle } from "lucide-react";
 import HowToUseModal from "../components/HowToUseModal";
+import AvatarRenderer from "../components/AvatarRenderer";
 
 export default function RoomView() {
   const { activeRoom, leaveRoom } = useContext(SocketContext);
@@ -92,7 +93,7 @@ export default function RoomView() {
             <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
               {activeRoom?.users.map((user) => (
                 <div key={user.socketId} className="flex items-center gap-3 p-3 bg-white dark:bg-[#1a1a20] border-2 border-black rounded-xl shadow-flatHover">
-                  <span className="text-xl">{user.avatar}</span>
+                  <AvatarRenderer name={user.avatar} size="sm" />
                   <div className="flex-grow min-w-0">
                     <p className="text-sm font-extrabold truncate text-zinc-950 dark:text-zinc-50">{user.username}</p>
                     <span className="inline-flex items-center gap-1.5 text-[9px] text-cyberGreen font-mono font-bold uppercase">
